@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from "react";
+import { AiFillLike } from 'react-icons/ai';
 
 import api from './services/api';
 
@@ -24,6 +25,23 @@ function App() {
     }
   }
 
+  async function handleLike(id) {
+    const response = await api.post('repositories/'+id+'/like');
+    if ((response.status >= 200) && (response.status < 300)) {
+      setRepositories(oldValue => {
+        const newValue = [];
+        oldValue.forEach(repository => {
+          const copy = {...repository};
+          if (copy.id === id) {
+            copy.likes++;
+          }
+          newValue.push(copy);
+        });
+        return newValue;
+      });
+    }
+  }
+
   async function handleRemoveRepository(id) {
     const response = await api.delete('repositories/'+id);
     if (response.status === 204) {
@@ -36,10 +54,18 @@ function App() {
       <ul data-testid="repository-list">
         {repositories.map(repository => (
           <li key={repository.id}>
-            <a href={repository.url}>{repository.title}</a>
-            <button>{repository.likes}</button>
+            <div className="text">
+              <h3>
+                <a href={repository.url}>{repository.title}</a>
+              </h3>
+              <p>{repository.techs.join(', ')}</p>
+            </div>
+            <button className="like" onClick={() => handleLike(repository.id)}>
+              <AiFillLike size={14} />
+              {repository.likes}
+            </button>
 
-            <button onClick={() => handleRemoveRepository(repository.id)}>
+            <button className="remove" onClick={() => handleRemoveRepository(repository.id)}>
               Remover
             </button>
           </li>
